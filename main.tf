@@ -6,7 +6,6 @@ resource "google_project_service" "container" {
   service = "container.googleapis.com"
 }
 
-
 #------------------------------------------------------
 # GKE Cluster
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_cluster.html#example-usage---with-a-separately-managed-node-pool-recommended
@@ -28,7 +27,7 @@ resource "google_container_cluster" "primary" {
 
   # this node_config block is for the "default pool", which we are not using as per recommendations:
   # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/container_cluster#node_config
-  # however, it is required if you're going to use confidential nodes otherwise it will complain about the 
+  # however, it is required if you're going to use confidential nodes otherwise it will complain about the
   # machine family not being set to N2D, even though is in the "google_container_node_pool" resource
   dynamic "node_config" {
     for_each = var.confidential_nodes_enabled ? [1] : []
@@ -58,6 +57,7 @@ resource "google_container_cluster" "primary" {
   # which I will probably look to add at a later date
   networking_mode = var.networking_mode
   ip_allocation_policy {
+    stack_type               = "IPV4_IPV6"
     cluster_ipv4_cidr_block  = var.cluster_ipv4_cidr_block
     services_ipv4_cidr_block = var.services_ipv4_cidr_block
   }
@@ -222,7 +222,6 @@ resource "google_container_cluster" "primary" {
     ]
   }
 }
-
 
 #------------------------------------------------------
 # GKE Cluster Node Pool

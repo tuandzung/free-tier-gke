@@ -1,13 +1,16 @@
 resource "google_compute_network" "k8s" {
-  name = "${var.gke_cluster_name}-k8s-vpc"
+  name = "${var.gke_cluster_name}-dual-stack-vpc"
 
   # defaults to true.  false = --subnet-mode custom
-  auto_create_subnetworks = false
+  auto_create_subnetworks  = false
+  enable_ula_internal_ipv6 = true
 }
 
 resource "google_compute_subnetwork" "k8s" {
-  name                     = "${var.gke_cluster_name}-subnet"
+  name                     = "${var.gke_cluster_name}-dual-stack-subnet"
   ip_cidr_range            = var.primary_ip_cidr
+  stack_type               = "IPV4_IPV6"
+  ipv6_access_type         = "EXTERNAL"
   network                  = google_compute_network.k8s.id
   private_ip_google_access = "true"
   region                   = var.region
@@ -72,7 +75,6 @@ resource "google_service_networking_connection" "default" {
   reserved_peering_ranges = [google_compute_global_address.private_ip_alloc.name]
 }
 
-
 #------------------------------
 # Firewalls
 #------------------------------
@@ -90,7 +92,6 @@ resource "google_compute_firewall" "lb_health_check" {
   # https://cloud.google.com/load-balancing/docs/health-check-concepts#ip-ranges
   source_ranges = data.google_netblock_ip_ranges.health-checkers.cidr_blocks_ipv4
 }
-
 
 #---------------------------------------------------
 # Routers
